@@ -11,7 +11,7 @@ export class CicdApp01Stack extends cdk.Stack {
     // Define the Lambda function
     const lambdaFunction = new lambda.Function(this, 'QueryLambda', {
       runtime: lambda.Runtime.NODEJS_18_X, // Set Node.js 18 runtime
-      code: lambda.Code.fromAsset('../lambda'), // Path to your Lambda function code
+      code: lambda.Code.fromAsset('lambda'), // Path to your Lambda function code
       handler: 'index.handler',
       environment: {
         TABLE_NAME: 'EmployeesTable', // The name of the DynamoDB table
