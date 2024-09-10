@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
-    "test": "mocha -r ts-node/register test/integration/api.test.ts",
+    "test": "npx mocha -r ts-node/register --extensions ts,tsx test/integration/api.test.ts",
     "cdk": "cdk"
   },
   "devDependencies": {
