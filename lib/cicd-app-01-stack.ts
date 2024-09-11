@@ -4,6 +4,7 @@ import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import { Construct } from 'constructs';
 import path = require('path');
+import { AuthenticationMethod } from 'aws-cdk-lib/aws-lambda-event-sources';
 
 export class CicdApp01Stack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -26,11 +27,19 @@ export class CicdApp01Stack extends cdk.Stack {
     // Define the API Gateway
     const api = new apigateway.RestApi(this, 'ApiGateway', {
       restApiName: 'Employees API',
+      defaultMethodOptions: {
+        authorizationType: apigateway.AuthorizationType.NONE,  // No authorization required
+      },
     });
 
     const getEmployees = api.root.addResource('employees');
     getEmployees.addMethod('GET', new apigateway.LambdaIntegration(lambdaFunction, {
       proxy: true,
-    }));
+    }),
+    {
+      authorizationType: apigateway.AuthorizationType.NONE,
+    }
+    
+  );
   }
 }
