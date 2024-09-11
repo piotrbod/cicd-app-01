@@ -1,10 +1,10 @@
 import * as cdk from 'aws-cdk-lib';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as apigateway from 'aws-cdk-lib/aws-apigateway';
+import * as apigatewayv2 from 'aws-cdk-lib/aws-apigatewayv2';
+import * as integrations from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import { Construct } from 'constructs';
 import path = require('path');
-import { AuthenticationMethod } from 'aws-cdk-lib/aws-lambda-event-sources';
 
 export class CicdApp01Stack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -24,22 +24,20 @@ export class CicdApp01Stack extends cdk.Stack {
     const table = dynamodb.Table.fromTableName(this, 'ExistingTable', 'EmployeesTable');
     table.grantReadData(lambdaFunction);
 
-    // Define the API Gateway
-    const api = new apigateway.RestApi(this, 'ApiGateway', {
-      restApiName: 'Employees API',
-      defaultMethodOptions: {
-        authorizationType: apigateway.AuthorizationType.NONE,  // No authorization required
-      },
+    // Create an HTTP API Gateway
+    const httpApi = new apigatewayv2.HttpApi(this, 'HttpApi', {
+      apiName: 'Employees HTTP API',
+      description: 'API for managing employees',
     });
 
-    const getEmployees = api.root.addResource('employees');
-    getEmployees.addMethod('GET', new apigateway.LambdaIntegration(lambdaFunction, {
-      proxy: true,
-    }),
-    {
-      authorizationType: apigateway.AuthorizationType.NONE,
-    }
-    
-  );
+    // Add a route for the 'GET /employees' endpoint
+    httpApi.addRoutes({
+      path: '/employees',
+      methods: [apigatewayv2.HttpMethod.GET],
+      integration: new integrations.HttpLambdaIntegration(
+        'LambdaIntegration',
+        lambdaFunction
+      ),
+    });
   }
 }
