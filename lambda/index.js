@@ -1,5 +1,8 @@
-const AWS = require('aws-sdk');
-const dynamoDb = new AWS.DynamoDB.DocumentClient();
+// Import the DynamoDBClient and QueryCommand from @aws-sdk/client-dynamodb
+const { DynamoDBClient, QueryCommand } = require('@aws-sdk/client-dynamodb');
+
+// Create a new DynamoDB client
+const dynamoDbClient = new DynamoDBClient({ region: 'us-east-1' }); // Replace with your region
 
 exports.handler = async (event) => {
   const employerId = event.queryStringParameters && event.queryStringParameters.employerId;
@@ -16,12 +19,13 @@ exports.handler = async (event) => {
     IndexName: 'EmployerIndex', // Ensure this is the correct index name
     KeyConditionExpression: 'employerId = :employerId',
     ExpressionAttributeValues: {
-      ':employerId': employerId,
+      ':employerId': { S: employerId },
     },
   };
 
   try {
-    const data = await dynamoDb.query(params).promise();
+    const command = new QueryCommand(params);
+    const data = await dynamoDbClient.send(command);
     return {
       statusCode: 200,
       body: JSON.stringify(data.Items),
