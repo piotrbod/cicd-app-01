@@ -10,19 +10,34 @@ export class CicdApp01Stack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
+    // Define parameters or context for table and index names
+    const tableName = 'EmployeesTable'; // Example, replace with context or props if dynamic
+    const indexName = 'EmployerIndex';  // Example, replace with context or props if dynamic
+    const region = this.region;
+    const accountId = this.account;
+
     // Define the Lambda function
     const lambdaFunction = new lambda.Function(this, 'QueryLambda', {
       runtime: lambda.Runtime.NODEJS_18_X, // Set Node.js 18 runtime
       code: lambda.Code.fromAsset(path.join(__dirname, '../lambda')), // Path to your Lambda function code
       handler: 'index.handler',
       environment: {
-        TABLE_NAME: 'EmployeesTable', // The name of the DynamoDB table
+        TABLE_NAME: tableName,
       },
     });
 
+    // Construct the DynamoDB table ARN and index ARN dynamically
+    const tableArn = `arn:aws:dynamodb:${region}:${accountId}:table/${tableName}`;
+    const indexArn = `arn:aws:dynamodb:${region}:${accountId}:table/${tableName}/index/${indexName}`;
+
     // Grant the Lambda function read permissions on the DynamoDB table
-    const table = dynamodb.Table.fromTableName(this, 'ExistingTable', 'EmployeesTable');
+    const table = dynamodb.Table.fromTableName(this, indexName, tableName);
     table.grantReadData(lambdaFunction);
+
+    lambdaFunction.role?.addToPrincipalPolicy(new cdk.aws_iam.PolicyStatement({
+      actions: ['dynamodb:Query'],
+      resources: [tableArn, indexArn],
+    }));
 
     // Create an HTTP API Gateway
     const httpApi = new apigatewayv2.HttpApi(this, 'HttpApi', {
